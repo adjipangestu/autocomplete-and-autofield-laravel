@@ -1,72 +1,162 @@
-<p align="center"><img src="https://res.cloudinary.com/dtfbvvkyp/image/upload/v1566331377/laravel-logolockup-cmyk-red.svg" width="400"></p>
+## Install
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+```
+composer update
+```
 
-## About Laravel
+```
+php artisan key:generate
+```
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Create file .env and setting your database
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+```
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=sig
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Requirement
 
-## Learning Laravel
+#### css
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### js
+- <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js" integrity="sha256-eGE6blurk5sHj+rmkfsGYeKyZx3M4bG+ZlFyA7Kns7E=" crossorigin="anonymous"></script>
 
-## Laravel Sponsors
+## Controller
+```php
+<?php
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+namespace App\Http\Controllers;
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
-- [We Are The Robots Inc.](https://watr.mx/)
-- [Understand.io](https://www.understand.io/)
-- [Abdel Elrafa](https://abdelelrafa.com)
-- [Hyper Host](https://hyper.host)
+use Illuminate\Http\Request;
+use DB;
 
-## Contributing
+class JajanController extends Controller
+{
+    public function index()
+    {
+        $data_pasien = DB::table('data_pasien')->get();
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+        return view('welcome')->with([
+            'data_pasien' => $data_pasien
+        ]);
+    }
 
-## Security Vulnerabilities
+    public function data_pasien(Request $request)
+    {
+        $search = $request->cari;
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+        if($search == ''){
+           $data_pasien = DB::table('data_pasien')
+                            ->join('data_faskes', 'data_faskes.id', '=', 'data_pasien.id_faskes')
+                            ->join('data_kecamatan', 'data_kecamatan.id', '=', 'data_pasien.id_kecamatan')
+                            ->select('data_pasien.id','data_pasien.nama_pasien', 'data_faskes.nama_faskes', 'data_kecamatan.nama_kecamatan')
+                            ->limit(5)->get();
+        }else{
+           $data_pasien = DB::table('data_pasien')
+                            ->join('data_faskes', 'data_faskes.id', '=', 'data_pasien.id_faskes')
+                            ->join('data_kecamatan', 'data_kecamatan.id', '=', 'data_pasien.id_kecamatan')
+                            ->select('data_pasien.id','data_pasien.nama_pasien', 'data_faskes.nama_faskes', 'data_kecamatan.nama_kecamatan')
+                            ->where('data_pasien.nama_pasien', 'like', '%' .$search . '%')
+                            ->limit(5)->get();
+        }
+  
+        $response = array();
+        foreach($data_pasien as $pasien){
+           $response[] = array(
+               "value" => $pasien->id,
+               "label" => $pasien->nama_pasien,
+               "faskes" => $pasien->nama_faskes,
+               "kecamatan" => $pasien->nama_kecamatan
+            );
+        }
+        return response()->json($response);
+    }
+}
+```
 
-## License
+## View and Ajax
+```html
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-The Laravel framework is open-source software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>{{ config('app.name', 'Laravel') }}</title>
+
+    <!-- Fonts -->
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+    <!-- Styles -->
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <main class="py-4">
+                <div class="form-group mt-10">
+                    <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('Nama Pasien') }}</label>
+                    <div class="col-md-6">
+                        <input type="text" id='pasien' class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('Puskesmas') }}</label>
+                    <div class="col-md-6">
+                        <input type="text" id='puskesmas' class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('Kecamatan') }}</label>
+                    <div class="col-md-6">
+                        <input type="text" id='kecamatan' class="form-control">
+                    </div>
+                </div>
+                @yield('content')
+            </main>
+        </div>
+    </div>
+</body>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js" integrity="sha256-eGE6blurk5sHj+rmkfsGYeKyZx3M4bG+ZlFyA7Kns7E=" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
+        $(document).ready(function(){
+            $( "#pasien" ).autocomplete({
+                source: function( request, response ) {
+                    console.log(request.term)
+                $.ajax({
+                    url:"{{route('pasien')}}",
+                    type: 'post',
+                    dataType: "json",
+                    data: {
+                        _token: CSRF_TOKEN,
+                        cari: request.term
+                    },
+                    success: function( data ) {
+                    response( data );
+                    }
+                });
+                },
+                select: function (event, ui) {
+                $('#pasien').val(ui.item.label);
+                $('#puskesmas').val(ui.item.faskes);
+                $('#kecamatan').val(ui.item.kecamatan);
+                return false;
+                }
+            });
+        });
+  </script>
+</html>
+```
